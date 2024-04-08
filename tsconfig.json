@@ -18,7 +18,10 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "types": [
+      "gapi", "gapi.client", "gapi.client.gmail", "google.accounts",
+    ]
   },
   "include": [
     "src"

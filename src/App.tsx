@@ -1,25 +1,25 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { ChakraProvider, Stack } from '@chakra-ui/react'
+import Header from './components/Header/Header';
+import RegisterForm from './components/RegisterForm/RegisterForm';
+import PaymentList from './components/PaymentList/PaymentList';
+import Footer from './components/Footer/Footer';
+import { usePayments } from './hooks/usePayments';
+import { UserSeetingsProvider } from './Provider/UserSeetingsProvider';
 
-function App() {
+const App: React.FC = () => {
+  const { payments, addPayment, editPayment, deletePayment } = usePayments();
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ChakraProvider>
+      <UserSeetingsProvider>
+        <Header fontSize={"3xl"} iconSize={"6"} bg='blue.100' />
+        <Stack p="2">
+          <RegisterForm onSubmit={addPayment} />
+          <PaymentList payments={payments} handleEdit={editPayment} handleDelete={deletePayment} />
+        </Stack>
+        <Footer payments={payments} />
+      </UserSeetingsProvider>
+    </ChakraProvider>
   );
 }
 
