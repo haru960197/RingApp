@@ -45,6 +45,7 @@ const SettingDrawer: React.FC = () => {
             <FormControl>
               <FormLabel>請求先メールアドレス</FormLabel>
               <Input
+                value={destMailAddrInput}
                 onChange={(e) => setDestMailAddrInput(e.target.value)}
                 ref={firstInputRef}
               />
