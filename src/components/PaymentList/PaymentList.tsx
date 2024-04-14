@@ -11,7 +11,6 @@ type Props = {
 
 const PaymentList: React.FC<Props> = (props) => {
   // TODO : titleが長いとどんどん横に伸びてるから、改行するか、...にするか。
-  // TODO : 日付順に並び変え
   return (
     <TableContainer>
       <Table size={"sm"}>

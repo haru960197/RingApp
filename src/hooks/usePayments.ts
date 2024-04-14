@@ -55,8 +55,7 @@ export const usePayments = (): IPayments => {
       date,
     );
     const newPayments: Payment[] = [...payments, newPayment];
-    setPayments(newPayments);
-    localStorage.setItem("payments", JSON.stringify(newPayments));
+    setNewPayments(newPayments);
   };
 
   const editPayment = (id: number, title: string, ammount: number, date: Date) => {
@@ -73,13 +72,20 @@ export const usePayments = (): IPayments => {
         return payment;
       }
     });
-    setPayments(newPayments);
-    localStorage.setItem("payments", JSON.stringify(newPayments));
+    setNewPayments(newPayments);
   }
 
   const deletePayment = (id: number): void => {
     const newPayments = payments.filter((payment) => payment.id !== id);
+    setNewPayments(newPayments);
+  }
+
+  const setNewPayments = (newPayments: Payment[]): void => {
+    // 日付順にソート
+    newPayments.sort((a, b) => a.date > b.date ? 1 : -1);
+    // set
     setPayments(newPayments);
+    // localStorageに保存
     localStorage.setItem("payments", JSON.stringify(newPayments));
   }
 
