@@ -32,7 +32,10 @@ const PaymentList: React.FC<Props> = (props) => {
               <Td maxW={'30px'} p={1}>
                 <HStack spacing={4} justifyContent={"end"}>
                   <EditDrawer payment={payment} onSaveClick={props.handleEdit} />
-                  <DeleteDialog onDeleteClick={() => props.handleDelete(payment.id)} />
+                  <DeleteDialog
+                    payment={payment}
+                    onDeleteClick={() => props.handleDelete(payment.id)}
+                  />
                 </HStack>
               </Td>
             </Tr>
