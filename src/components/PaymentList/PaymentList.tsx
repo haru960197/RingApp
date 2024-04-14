@@ -19,8 +19,8 @@ const PaymentList: React.FC<Props> = (props) => {
           <Tr>
             <Th maxW={0.3} px={2}>日付</Th>
             <Th>用途</Th>
-            <Th maxW={0.3}>金額</Th>
-            <Th maxW={'25px'} p={1}></Th>
+            <Th maxW={0.4}>金額</Th>
+            <Th maxW={'30px'} p={1}></Th>
           </Tr>
         </Thead>
         <Tbody>
@@ -28,8 +28,8 @@ const PaymentList: React.FC<Props> = (props) => {
             <Tr key={payment.id}>
               <Td maxW={0.3} px={2}>{(payment.date.getMonth() + 1) + '/' + payment.date.getDate()}</Td>
               <Td>{payment.title}</Td>
-              <Td maxW={0.3}>{payment.ammount}</Td>
-              <Td maxW={'25px'} p={1}>
+              <Td maxW={0.4}>{payment.ammount}</Td>
+              <Td maxW={'30px'} p={1}>
                 <HStack spacing={4} justifyContent={"end"}>
                   <EditDrawer payment={payment} onSaveClick={props.handleEdit} />
                   <DeleteDialog onDeleteClick={() => props.handleDelete(payment.id)} />
