@@ -17,6 +17,7 @@ import SendMailDialogBody from "./SendMailDialogBody";
 type Props = {
   payments: Payment[],
   sumAmmount: number,
+  resetPayments: () => void,
 }
 
 const SendMailButton: React.FC<Props> = (props) => {
@@ -77,7 +78,11 @@ const SendMailButton: React.FC<Props> = (props) => {
   }
 
   const handleSendClick = () => {
+    if (userSettings.resetOnSend) {
+      props.resetPayments();
+    }
     window.location.href = `mailto:${userSettings.destMailAddr}?subject=立替分の振込のお願い&body=${mailBody(props.payments)}`;
+    onClose();
   }
 
   return (
@@ -98,8 +103,15 @@ const SendMailButton: React.FC<Props> = (props) => {
       >
         <AlertDialogOverlay>
           <AlertDialogContent>
-            <AlertDialogHeader fontSize='lg' fontWeight='bold'>
-              以下の内容でメールを送信しますか？
+            <AlertDialogHeader >
+              <Text fontSize='lg' fontWeight='bold'>
+                以下の内容でメールを送信しますか？
+              </Text>
+              {userSettings.resetOnSend &&
+                <Text fontSize='lg' fontWeight='bold'>
+                  ※送信と同時に履歴がリセットされます
+                </Text>
+              }
             </AlertDialogHeader>
 
             <SendMailDialogBody

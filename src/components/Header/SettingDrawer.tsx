@@ -1,5 +1,5 @@
 import { SettingsIcon } from "@chakra-ui/icons"
-import { Button, Drawer, DrawerBody, DrawerCloseButton, DrawerContent, DrawerFooter, DrawerHeader, DrawerOverlay, FormControl, FormLabel, Input, NumberInput, NumberInputField, Stack, Text, useDisclosure } from "@chakra-ui/react"
+import { Button, Checkbox, Drawer, DrawerBody, DrawerCloseButton, DrawerContent, DrawerFooter, DrawerHeader, DrawerOverlay, FormControl, FormLabel, Input, NumberInput, NumberInputField, Stack, Text, useDisclosure } from "@chakra-ui/react"
 import { useContext, useRef, useState } from "react";
 import { UserSeetingsContext, UserSettings } from "../../Provider/UserSeetingsProvider";
 
@@ -9,6 +9,7 @@ const SettingDrawer: React.FC = () => {
   const [destMailAddrInput, setDestMailAddrInput] = useState(userSettings.destMailAddr);
   const [titleInput, setTitleInput] = useState<string>(userSettings.everyMonthPayment?.title ?? "");
   const [ammountInput, setAmmountInput] = useState<number>(userSettings.everyMonthPayment?.ammount ?? 0);
+  const [resetOnSendInput, setResetOnSendinput] = useState<boolean>(userSettings.resetOnSend);
   const firstInputRef = useRef(null);
 
   const handleSaveClick = (): void => {
@@ -20,10 +21,19 @@ const SettingDrawer: React.FC = () => {
             title: titleInput,
             ammount: ammountInput,
           }
-          : null
+          : null,
+      resetOnSend: resetOnSendInput,
     };
     setUserSettings(newUserSettings);
     localStorage.setItem("userSettings", JSON.stringify(newUserSettings));
+    onClose();
+  }
+
+  const handleCanselClick = (): void => {
+    setDestMailAddrInput(userSettings.destMailAddr);
+    setTitleInput(userSettings.everyMonthPayment?.title ?? "");
+    setAmmountInput(userSettings.everyMonthPayment?.ammount ?? 0);
+    setResetOnSendinput(userSettings.resetOnSend);
     onClose();
   }
 
@@ -70,10 +80,19 @@ const SettingDrawer: React.FC = () => {
                 </NumberInput>
               </FormControl>
             </Stack>
+            <FormControl>
+              <FormLabel>メール送信時に履歴をリセット</FormLabel>
+              <Checkbox
+                isChecked={resetOnSendInput}
+                onChange={(e) => setResetOnSendinput(e.target.checked)}
+              >
+                リセット
+              </Checkbox>
+            </FormControl>
           </DrawerBody>
 
           <DrawerFooter borderTopWidth='1px'>
-            <Button variant='outline' mr={3} onClick={onClose}>
+            <Button variant='outline' mr={3} onClick={handleCanselClick}>
               キャンセル
             </Button>
             <Button colorScheme='blue' onClick={handleSaveClick}>

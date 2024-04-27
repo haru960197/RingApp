@@ -7,6 +7,7 @@ type Props = {
 export type UserSettings = {
   destMailAddr: string,
   everyMonthPayment: { title: string, ammount: number } | null,
+  resetOnSend: boolean,
 };
 
 export const UserSeetingsContext = createContext(
@@ -28,6 +29,7 @@ export const UserSeetingsProvider: React.FC<Props> = (props) => {
         return ({
           destMailAddr: "",
           everyMonthPayment: null,
+          resetOnSend: false,
         } satisfies UserSettings);
       }
     })()

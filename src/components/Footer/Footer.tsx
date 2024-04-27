@@ -7,13 +7,18 @@ import SendMailButton from "./SendMailButton";
 type Props = {
 	payments: Payment[],
 	sumAmmount: number,
+	resetPayments: () => void;
 }
 
 const Footer: React.FC<Props> = (props) => {
 
 	return (
 		<HStack justify={"end"} px={2}>
-			<SendMailButton payments={props.payments} sumAmmount={props.sumAmmount} />
+			<SendMailButton
+				payments={props.payments}
+				sumAmmount={props.sumAmmount}
+				resetPayments={props.resetPayments}
+			/>
 		</HStack>
 	);
 }

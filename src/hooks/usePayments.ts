@@ -27,6 +27,7 @@ interface IPayments {
   addPayment: (title: string, ammount: number, date: Date) => void;
   editPayment: (id: number, title: string, ammount: number, date: Date) => void;
   deletePayment: (id: number) => void;
+  resetPayments: () => void;
 }
 
 export const usePayments = (): IPayments => {
@@ -87,6 +88,10 @@ export const usePayments = (): IPayments => {
     setNewPayments(newPayments);
   }
 
+  const resetPayments = (): void => {
+    setNewPayments([]);
+  }
+
   const setNewPayments = (newPayments: Payment[]): void => {
     // 日付順にソート
     newPayments.sort((a, b) => a.date > b.date ? 1 : -1);
@@ -102,6 +107,7 @@ export const usePayments = (): IPayments => {
     addPayment,
     editPayment,
     deletePayment,
+    resetPayments,
   } satisfies IPayments);
 }
 
