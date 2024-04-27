@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export class Payment {
   static counter = 0;
@@ -23,6 +23,7 @@ export class Payment {
 
 interface IPayments {
   payments: Payment[];
+  sumAmmount: number;
   addPayment: (title: string, ammount: number, date: Date) => void;
   editPayment: (id: number, title: string, ammount: number, date: Date) => void;
   deletePayment: (id: number) => void;
@@ -47,6 +48,12 @@ export const usePayments = (): IPayments => {
       }
     })()
   );
+  const [sumAmmount, setSumAmmount] = useState<number>(0);
+  useEffect(() => {
+    let sum = 0;
+    payments.forEach((payment) => sum += payment.ammount);
+    setSumAmmount(sum);
+  }, [payments]);
 
   const addPayment = (title: string, ammount: number, date: Date) => {
     const newPayment = new Payment(
@@ -91,6 +98,7 @@ export const usePayments = (): IPayments => {
 
   return ({
     payments,
+    sumAmmount,
     addPayment,
     editPayment,
     deletePayment,

@@ -1,13 +1,26 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { UserSeetingsContext } from "../../Provider/UserSeetingsProvider";
 import { Payment } from "../../hooks/usePayments";
-import { Button, Link, Stack, Text } from "@chakra-ui/react";
+import {
+  AlertDialog,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
+  useDisclosure,
+  Button,
+  Stack,
+  Text
+} from "@chakra-ui/react";
+import SendMailDialogBody from "./SendMailDialogBody";
 
 type Props = {
   payments: Payment[],
+  sumAmmount: number,
 }
 
 const SendMailButton: React.FC<Props> = (props) => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const { userSettings } = useContext(UserSeetingsContext);
   const [isDisabled, setIsDisabled] = useState<boolean>(
     userSettings.destMailAddr === ""
@@ -24,6 +37,7 @@ const SendMailButton: React.FC<Props> = (props) => {
       return message;
     })()
   );
+  const cancelRef = useRef(null);
 
   // メールアドレスや支払い履歴が更新されたら、メール送信可否を再チェックし、メッセージを更新
   useEffect(() => {
@@ -45,18 +59,15 @@ const SendMailButton: React.FC<Props> = (props) => {
     const header = "立替分は以下の通りです。";
 
     let body = "";
-    let sumAmmount = 0;
     // 手動で追加した支払い分
     payments.forEach((payment) => {
       body += `${payment.date.getMonth() + 1}月${payment.date.getDate()}日 : ${payment.title} ${payment.ammount}円%0d%0a`;
-      sumAmmount += payment.ammount;
     });
     // 登録した固定費
     if (userSettings.everyMonthPayment) {
       body += `%0d%0a${userSettings.everyMonthPayment.title} ${userSettings.everyMonthPayment.ammount}円%0d%0a`;
-      sumAmmount += userSettings.everyMonthPayment.ammount;
     }
-    body += `%0d%0a合計 ${sumAmmount}円`
+    body += `%0d%0a合計 ${props.sumAmmount}円`;
 
     const footer = "よろしくお願いいたします。";
 
@@ -65,19 +76,49 @@ const SendMailButton: React.FC<Props> = (props) => {
     );
   }
 
+  const handleSendClick = () => {
+    window.location.href = `mailto:${userSettings.destMailAddr}?subject=立替分の振込のお願い&body=${mailBody(props.payments)}`;
+  }
+
   return (
-    <Stack align={'end'}>
-      <Button colorScheme="blue" isDisabled={isDisabled} w={'130px'}>
-        <Link
-          href={isDisabled ? "" : `mailto:${userSettings.destMailAddr}?subject=立替分の振込のお願い&body=${mailBody(props.payments)}`}
-        >
+    <>
+      <Stack align={'end'}>
+        <Button colorScheme="blue" isDisabled={isDisabled} w={'130px'} onClick={onOpen}>
           メールを送信
-        </Link>
-      </Button>
-      <Text fontSize={'small'} color={'red'}>
-        {message}
-      </Text>
-    </Stack>
+        </Button>
+        <Text fontSize={'small'} color={'red'}>
+          {message}
+        </Text>
+      </Stack>
+
+      <AlertDialog
+        isOpen={isOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={onClose}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize='lg' fontWeight='bold'>
+              以下の内容でメールを送信しますか？
+            </AlertDialogHeader>
+
+            <SendMailDialogBody
+              payments={props.payments}
+              sumAmmount={props.sumAmmount}
+            />
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onClose}>
+                キャンセル
+              </Button>
+              <Button colorScheme='blue' onClick={handleSendClick} ml={3}>
+                送信
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
+    </>
   );
 };
 

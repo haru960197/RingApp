@@ -7,7 +7,7 @@ import { usePayments } from './hooks/usePayments';
 import { UserSeetingsProvider } from './Provider/UserSeetingsProvider';
 
 const App: React.FC = () => {
-  const { payments, addPayment, editPayment, deletePayment } = usePayments();
+  const { payments, sumAmmount, addPayment, editPayment, deletePayment } = usePayments();
 
   return (
     <ChakraProvider>
@@ -17,7 +17,7 @@ const App: React.FC = () => {
           <RegisterForm onSubmit={addPayment} />
           <PaymentList payments={payments} handleEdit={editPayment} handleDelete={deletePayment} />
         </Stack>
-        <Footer payments={payments} />
+        <Footer payments={payments} sumAmmount={sumAmmount} />
       </UserSeetingsProvider>
     </ChakraProvider>
   );
