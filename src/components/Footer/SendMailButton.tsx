@@ -27,12 +27,16 @@ const SendMailButton: React.FC<Props> = (props) => {
     userSettings.destMailAddr === ""
     || (userSettings.everyMonthPayment === null && props.payments.length === 0)
   );
+  const [billAmmount, setBillAmmount] = useState<number>(
+    props.sumAmmount + (userSettings.everyMonthPayment?.ammount ?? 0)
+  );
+
   const [message, setMessage] = useState<string>(
     (() => {
       let message = "";
       if (userSettings.destMailAddr === "") {
         message = "メールアドレスが設定されていません";
-      } else if (userSettings.everyMonthPayment === null && props.payments.length === 0) {
+      } else if (billAmmount === 0) {
         message = "請求額が0円です";
       }
       return message;
@@ -42,19 +46,20 @@ const SendMailButton: React.FC<Props> = (props) => {
 
   // メールアドレスや支払い履歴が更新されたら、メール送信可否を再チェックし、メッセージを更新
   useEffect(() => {
-    setIsDisabled(
-      userSettings.destMailAddr === ""
-      || (userSettings.everyMonthPayment === null && props.payments.length === 0)
-    );
+    const newBillAmmount = props.sumAmmount + (userSettings.everyMonthPayment?.ammount ?? 0);
 
     let newMessage = "";
     if (userSettings.destMailAddr === "") {
       newMessage = "メールアドレスが設定されていません";
-    } else if (userSettings.everyMonthPayment === null && props.payments.length === 0) {
+    } else if (billAmmount === 0) {
       newMessage = "請求額が0円です";
     }
     setMessage(newMessage);
-  }, [userSettings, props.payments]);
+    setIsDisabled(
+      userSettings.destMailAddr === "" || newBillAmmount === 0
+    );
+    setBillAmmount(newBillAmmount)
+  }, [userSettings, props.payments, props.sumAmmount]);
 
   const mailBody = (payments: Payment[]): string => {
     const header = "立替分は以下の通りです。";
@@ -68,7 +73,7 @@ const SendMailButton: React.FC<Props> = (props) => {
     if (userSettings.everyMonthPayment) {
       body += `%0d%0a${userSettings.everyMonthPayment.title} ${userSettings.everyMonthPayment.ammount}円%0d%0a`;
     }
-    body += `%0d%0a合計 ${props.sumAmmount}円`;
+    body += `%0d%0a合計 ${billAmmount}円`;
 
     const footer = "よろしくお願いいたします。";
 
@@ -116,7 +121,7 @@ const SendMailButton: React.FC<Props> = (props) => {
 
             <SendMailDialogBody
               payments={props.payments}
-              sumAmmount={props.sumAmmount}
+              billAmmount={billAmmount}
             />
 
             <AlertDialogFooter>

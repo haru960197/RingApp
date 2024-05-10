@@ -51,8 +51,7 @@ export const usePayments = (): IPayments => {
   );
   const [sumAmmount, setSumAmmount] = useState<number>(0);
   useEffect(() => {
-    let sum = 0;
-    payments.forEach((payment) => sum += payment.ammount);
+    const sum = payments.reduce((s, p) => s + p.ammount, 0);
     setSumAmmount(sum);
   }, [payments]);
 

@@ -10,7 +10,7 @@ import { UserSeetingsContext } from "../../Provider/UserSeetingsProvider";
 
 type Props = {
   payments: Payment[];
-  sumAmmount: number;
+  billAmmount: number;
 };
 
 const SendMailDialogBody: React.FC<Props> = (props) => {
@@ -35,7 +35,7 @@ const SendMailDialogBody: React.FC<Props> = (props) => {
             {`${userSettings.everyMonthPayment.title} ${userSettings.everyMonthPayment.ammount}円`}
           </Text>}
         <br />
-        <Text>{`合計 ${props.sumAmmount}円`}</Text>
+        <Text>{`合計 ${props.billAmmount}円`}</Text>
 
         <br />
 
