@@ -10,9 +10,10 @@ import {
   useDisclosure,
   Button,
   Stack,
-  Text
+  Text,
+  Textarea,
+  Box
 } from "@chakra-ui/react";
-import SendMailDialogBody from "./SendMailDialogBody";
 
 type Props = {
   payments: Payment[],
@@ -29,6 +30,9 @@ const SendMailButton: React.FC<Props> = (props) => {
   );
   const [billAmmount, setBillAmmount] = useState<number>(
     props.sumAmmount + (userSettings.everyMonthPayment?.ammount ?? 0)
+  );
+  const [mailBody, setMailBody] = useState<string>(
+    defaultMailBody(props.payments, billAmmount, userSettings.everyMonthPayment ?? undefined)
   );
 
   const [message, setMessage] = useState<string>(
@@ -58,35 +62,38 @@ const SendMailButton: React.FC<Props> = (props) => {
     setIsDisabled(
       userSettings.destMailAddr === "" || newBillAmmount === 0
     );
-    setBillAmmount(newBillAmmount)
+    setBillAmmount(newBillAmmount);
+    setMailBody(
+      defaultMailBody(props.payments, billAmmount, userSettings.everyMonthPayment ?? undefined)
+    );
   }, [userSettings, props.payments, props.sumAmmount]);
 
-  const mailBody = (payments: Payment[]): string => {
-    const header = "立替分は以下の通りです。";
-
-    let body = "";
-    // 手動で追加した支払い分
-    payments.forEach((payment) => {
-      body += `${payment.date.getMonth() + 1}月${payment.date.getDate()}日 : ${payment.title} ${payment.ammount}円%0d%0a`;
-    });
-    // 登録した固定費
-    if (userSettings.everyMonthPayment) {
-      body += `%0d%0a${userSettings.everyMonthPayment.title} ${userSettings.everyMonthPayment.ammount}円%0d%0a`;
+  // 改行文字を変換
+  const urlEncode = (mailBody: string): string => {
+    let encodedStr = "";
+    for (let i = 0; i < mailBody.length; i++) {
+      let c = mailBody[i];
+      if (c === "\n") {
+        c = "%0d%0a";
+      }
+      encodedStr += c;
     }
-    body += `%0d%0a合計 ${billAmmount}円`;
-
-    const footer = "よろしくお願いいたします。";
-
-    return (
-      `${header}%0d%0a%0d%0a${body}%0d%0a%0d%0a${footer}`
-    );
+    return encodedStr;
   }
 
   const handleSendClick = () => {
     if (userSettings.resetOnSend) {
       props.resetPayments();
     }
-    window.location.href = `mailto:${userSettings.destMailAddr}?subject=立替分の振込のお願い&body=${mailBody(props.payments)}`;
+    window.location.href =
+      `mailto:${userSettings.destMailAddr}?subject=立替分の振込のお願い&body=${urlEncode(mailBody)}`;
+    onClose();
+  }
+
+  const handleCansel = () => {
+    setMailBody(
+      defaultMailBody(props.payments, billAmmount, userSettings.everyMonthPayment ?? undefined)
+    );
     onClose();
   }
 
@@ -110,7 +117,7 @@ const SendMailButton: React.FC<Props> = (props) => {
           <AlertDialogContent>
             <AlertDialogHeader >
               <Text fontSize='lg' fontWeight='bold'>
-                以下の内容でメールを送信しますか？
+                メールを以下の内容で送信します
               </Text>
               {userSettings.resetOnSend &&
                 <Text fontSize='lg' fontWeight='bold'>
@@ -119,13 +126,16 @@ const SendMailButton: React.FC<Props> = (props) => {
               }
             </AlertDialogHeader>
 
-            <SendMailDialogBody
-              payments={props.payments}
-              billAmmount={billAmmount}
-            />
+            <Box px={2}>
+              <Textarea
+                value={mailBody}
+                onChange={(e) => setMailBody(e.target.value)}
+                minHeight={300}
+              />
+            </Box>
 
             <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onClose}>
+              <Button ref={cancelRef} onClick={handleCansel}>
                 キャンセル
               </Button>
               <Button colorScheme='blue' onClick={handleSendClick} ml={3}>
@@ -140,3 +150,26 @@ const SendMailButton: React.FC<Props> = (props) => {
 };
 
 export default SendMailButton;
+
+const defaultMailBody = (
+  payments: Payment[],
+  billAmmount: number,
+  everyMonthPayment?: { title: string, ammount: number }
+): string => {
+  const header = "立替分は以下の通りです。";
+
+  let body = "";
+  // 手動で追加した支払い分
+  payments.forEach((payment) => {
+    body += `${payment.date.getMonth() + 1}月${payment.date.getDate()}日 : ${payment.title} ${payment.ammount}円\n`;
+  });
+  // 登録した固定費
+  if (everyMonthPayment) {
+    body += `\n${everyMonthPayment.title} ${everyMonthPayment.ammount}円\n`;
+  }
+  body += `\n合計 ${billAmmount}円`;
+
+  const footer = "よろしくお願いいたします。";
+
+  return `${header}\n\n${body}\n\n${footer}`;
+}
