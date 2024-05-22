@@ -5,8 +5,8 @@ import DeleteDialog from "./DeleteDialog";
 
 type Props = {
   payments: Payment[],
-  handleEdit: (id: number, title: string, ammount: number, date: Date) => void,
-  handleDelete: (id: number) => void,
+  handleEdit: (id: string, title: string, ammount: number, date: Date) => void,
+  handleDelete: (id: string) => void,
 };
 
 const PaymentList: React.FC<Props> = (props) => {

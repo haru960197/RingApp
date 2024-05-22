@@ -5,7 +5,7 @@ import { Payment } from "../../hooks/usePayments";
 
 type Props = {
   payment: Payment,
-  onSaveClick: (id: number, title: string, ammount: number, date: Date) => void,
+  onSaveClick: (id: string, title: string, ammount: number, date: Date) => void,
 }
 
 const EditDrawer: React.FC<Props> = (props) => {

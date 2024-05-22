@@ -1,20 +1,28 @@
 import { useEffect, useState } from "react";
 
 export class Payment {
-  static counter = 0;
-
-  id: number;
+  id: string;
   title: string;
   ammount: number;
   date: Date;
+
+  getUniqueStr(myStrong?: number): string {
+    let strong = 1000;
+    if (myStrong) strong = myStrong;
+    return (
+      new Date().getTime().toString(16) +
+      Math.floor(strong * Math.random()).toString(16)
+    );
+  }
+
 
   constructor(
     title: string,
     ammount: number,
     date: Date,
-    id?: number,
+    id?: string,
   ) {
-    this.id = id ?? Payment.counter++;
+    this.id = id ?? this.getUniqueStr();
     this.title = title;
     this.ammount = ammount;
     this.date = date;
@@ -25,8 +33,8 @@ interface IPayments {
   payments: Payment[];
   sumAmmount: number;
   addPayment: (title: string, ammount: number, date: Date) => void;
-  editPayment: (id: number, title: string, ammount: number, date: Date) => void;
-  deletePayment: (id: number) => void;
+  editPayment: (id: string, title: string, ammount: number, date: Date) => void;
+  deletePayment: (id: string) => void;
   resetPayments: () => void;
 }
 
@@ -35,6 +43,12 @@ export const usePayments = (): IPayments => {
     ((): Payment[] => {
       const paymentsStr = localStorage.getItem("payments");
       if (paymentsStr) {
+        type PaymentJson = {
+          id: string,
+          title: string,
+          ammount: number,
+          date: string,
+        }
         const paymentJsonArr: PaymentJson[] = JSON.parse(paymentsStr);
         return paymentJsonArr.map((paymentJson) => (
           new Payment(
@@ -65,7 +79,7 @@ export const usePayments = (): IPayments => {
     setNewPayments(newPayments);
   };
 
-  const editPayment = (id: number, title: string, ammount: number, date: Date) => {
+  const editPayment = (id: string, title: string, ammount: number, date: Date) => {
     const editedPayment = new Payment(
       title,
       ammount,
@@ -82,7 +96,7 @@ export const usePayments = (): IPayments => {
     setNewPayments(newPayments);
   }
 
-  const deletePayment = (id: number): void => {
+  const deletePayment = (id: string): void => {
     const newPayments = payments.filter((payment) => payment.id !== id);
     setNewPayments(newPayments);
   }
@@ -108,11 +122,4 @@ export const usePayments = (): IPayments => {
     deletePayment,
     resetPayments,
   } satisfies IPayments);
-}
-
-type PaymentJson = {
-  id: number,
-  title: string,
-  ammount: number,
-  date: string,
 }
