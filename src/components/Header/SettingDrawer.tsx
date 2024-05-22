@@ -57,7 +57,7 @@ const SettingDrawer: React.FC = () => {
               <Input
                 value={destMailAddrInput}
                 onChange={(e) => setDestMailAddrInput(e.target.value)}
-                ref={firstInputRef}
+                ref={destMailAddrInput === "" ? firstInputRef : null}
               />
             </FormControl>
 
