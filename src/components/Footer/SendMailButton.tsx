@@ -55,7 +55,7 @@ const SendMailButton: React.FC<Props> = (props) => {
     let newMessage = "";
     if (userSettings.destMailAddr === "") {
       newMessage = "メールアドレスが設定されていません";
-    } else if (billAmmount === 0) {
+    } else if (newBillAmmount === 0) {
       newMessage = "請求額が0円です";
     }
     setMessage(newMessage);
@@ -64,7 +64,7 @@ const SendMailButton: React.FC<Props> = (props) => {
     );
     setBillAmmount(newBillAmmount);
     setMailBody(
-      defaultMailBody(props.payments, billAmmount, userSettings.everyMonthPayment ?? undefined)
+      defaultMailBody(props.payments, newBillAmmount, userSettings.everyMonthPayment ?? undefined)
     );
   }, [userSettings, props.payments, props.sumAmmount]);
 
