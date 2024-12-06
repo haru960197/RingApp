@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/RingApp/static/css/main.e6c13ad2.css",
-    "main.js": "/RingApp/static/js/main.7fd8d8ca.js",
+    "main.js": "/RingApp/static/js/main.ee695824.js",
     "static/js/453.86f84eed.chunk.js": "/RingApp/static/js/453.86f84eed.chunk.js",
     "index.html": "/RingApp/index.html",
     "main.e6c13ad2.css.map": "/RingApp/static/css/main.e6c13ad2.css.map",
-    "main.7fd8d8ca.js.map": "/RingApp/static/js/main.7fd8d8ca.js.map",
+    "main.ee695824.js.map": "/RingApp/static/js/main.ee695824.js.map",
     "453.86f84eed.chunk.js.map": "/RingApp/static/js/453.86f84eed.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.e6c13ad2.css",
-    "static/js/main.7fd8d8ca.js"
+    "static/js/main.ee695824.js"
   ]
 }
