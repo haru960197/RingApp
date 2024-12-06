@@ -9,12 +9,27 @@ const RegisterForm: React.FC<Props> = (props) => {
 	const [title, setTitle] = useState<string>("");
 	const [ammount, setAmmount] = useState<number>(0);
 	const [date, setDate] = useState<Date>(new Date());
+	const [isMinus, setIsMinus] = useState<boolean>(false);
+
+	const handleMinusClick = () => {
+		setIsMinus((isMinus) => !isMinus);
+		setAmmount((ammont) => -1 * ammont);
+	}
+
+	const handleNumberChange = (numStr: string) => {
+		if (isMinus && ammount >= 0) {
+			setAmmount(-1 * Number(numStr));
+		} else {
+			setAmmount(Number(numStr));
+		}
+	}
 
 	const handleClick = (): void => {
 		props.onSubmit(title, ammount, date);
 		setTitle("");
 		setAmmount(0);
 		setDate(new Date());
+		setIsMinus(false);
 	}
 
 	return (
@@ -26,12 +41,21 @@ const RegisterForm: React.FC<Props> = (props) => {
 
 			<FormControl>
 				<FormLabel>金額</FormLabel>
-				<NumberInput
-					value={ammount}
-					onChange={(valueStr) => setAmmount(Number(valueStr))}
-				>
-					<NumberInputField />
-				</NumberInput>
+				<HStack w="100%">
+					<Button
+						onClick={handleMinusClick}
+						bg={isMinus ? 'blue.300' : 'blue.50'}
+						textColor={isMinus ? 'white' : 'black'}
+						fontSize={'2xl'}
+					>-</Button>
+					<NumberInput
+						w="100%"
+						value={ammount}
+						onChange={handleNumberChange}
+						>
+						<NumberInputField />
+					</NumberInput>
+					</HStack>
 			</FormControl>
 
 			<FormControl>
