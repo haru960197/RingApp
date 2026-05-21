@@ -12,10 +12,17 @@ const RegisterForm: React.FC<Props> = (props) => {
 	const [date, setDate] = useState<Date>(new Date());
 	const [isMinus, setIsMinus] = useState<boolean>(false);
 	const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
+	const [isFiltered, setIsFiltered] = useState<boolean>(false);
 
 	const { userSettings } = useContext(UserSeetingsContext);
 	const suggestions = userSettings.purposeSuggestions ?? [];
 	const containerRef = useRef<HTMLDivElement>(null);
+
+	const displayedSuggestions = isFiltered
+		? suggestions.filter((suggestion) =>
+				suggestion.toLowerCase().includes(title.toLowerCase())
+		  )
+		: suggestions;
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -59,11 +66,23 @@ const RegisterForm: React.FC<Props> = (props) => {
 					onChange={(e) => {
 						setTitle(e.target.value);
 						setShowSuggestions(true);
+						setIsFiltered(true);
 					}}
-					onFocus={() => setShowSuggestions(true)}
-					onClick={() => setShowSuggestions(true)}
+					onFocus={() => {
+						setShowSuggestions(true);
+						setIsFiltered(false);
+					}}
+					onClick={() => {
+						setShowSuggestions(true);
+						setIsFiltered(false);
+					}}
+					onKeyDown={(e) => {
+						if (e.key === 'Tab' || e.key === 'Escape') {
+							setShowSuggestions(false);
+						}
+					}}
 				/>
-				{showSuggestions && suggestions.length > 0 && (
+				{showSuggestions && displayedSuggestions.length > 0 && (
 					<Box
 						position="absolute"
 						top="100%"
@@ -80,7 +99,7 @@ const RegisterForm: React.FC<Props> = (props) => {
 						borderColor="blue.600"
 					>
 						<List spacing={0}>
-							{suggestions.map((suggestion, index) => (
+							{displayedSuggestions.map((suggestion, index) => (
 								<ListItem
 									key={index}
 									px={4}
@@ -90,9 +109,10 @@ const RegisterForm: React.FC<Props> = (props) => {
 									onClick={() => {
 										setTitle(suggestion);
 										setShowSuggestions(false);
+										setIsFiltered(false);
 									}}
 									fontSize="sm"
-									borderBottomWidth={index < suggestions.length - 1 ? "1px" : "0px"}
+									borderBottomWidth={index < displayedSuggestions.length - 1 ? "1px" : "0px"}
 									borderColor="gray.100"
 								>
 									{suggestion}
