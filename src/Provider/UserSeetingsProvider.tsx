@@ -8,6 +8,7 @@ export type UserSettings = {
   destMailAddr: string,
   everyMonthPayment: { title: string, ammount: number } | null,
   resetOnSend: boolean,
+  purposeSuggestions: string[],
 };
 
 export const UserSeetingsContext = createContext(
@@ -17,6 +18,8 @@ export const UserSeetingsContext = createContext(
   }
 );
 
+export const DEFAULT_SUGGESTIONS = ["食費", "日用品", "交通費", "交際費", "その他"];
+
 export const UserSeetingsProvider: React.FC<Props> = (props) => {
   const { children } = props;
 
@@ -24,12 +27,19 @@ export const UserSeetingsProvider: React.FC<Props> = (props) => {
     ((): UserSettings => {
       const userSettingsStr = localStorage.getItem("userSettings");
       if (userSettingsStr) {
-        return JSON.parse(userSettingsStr) as UserSettings;
+        const parsed = JSON.parse(userSettingsStr) as UserSettings;
+        return {
+          destMailAddr: parsed.destMailAddr ?? "",
+          everyMonthPayment: parsed.everyMonthPayment ?? null,
+          resetOnSend: parsed.resetOnSend ?? false,
+          purposeSuggestions: parsed.purposeSuggestions ?? DEFAULT_SUGGESTIONS,
+        };
       } else {
         return ({
           destMailAddr: "",
           everyMonthPayment: null,
           resetOnSend: false,
+          purposeSuggestions: DEFAULT_SUGGESTIONS,
         } satisfies UserSettings);
       }
     })()
