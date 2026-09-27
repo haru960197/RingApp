@@ -1,5 +1,5 @@
 import { useContext, useEffect, useRef, useState } from "react";
-import { UserSeetingsContext } from "../../Provider/UserSeetingsProvider";
+import { UserSeetingsContext, EveryMonthPayment } from "../../Provider/UserSeetingsProvider";
 import { Payment } from "../../hooks/usePayments";
 import {
   AlertDialog,
@@ -21,18 +21,23 @@ type Props = {
   resetPayments: () => void,
 }
 
+const getFixedCostSum = (fixedCosts: EveryMonthPayment[] = []) =>
+  fixedCosts.reduce((sum, p) => sum + p.ammount, 0);
+
 const SendMailButton: React.FC<Props> = (props) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { userSettings } = useContext(UserSeetingsContext);
+  const initialFixedSum = getFixedCostSum(userSettings.everyMonthPayments);
+  const initialBillAmmount = props.sumAmmount + initialFixedSum;
+
+  const [billAmmount, setBillAmmount] = useState<number>(initialBillAmmount);
   const [isDisabled, setIsDisabled] = useState<boolean>(
     userSettings.destMailAddr === ""
-    || (userSettings.everyMonthPayment === null && props.payments.length === 0)
-  );
-  const [billAmmount, setBillAmmount] = useState<number>(
-    props.sumAmmount + (userSettings.everyMonthPayment?.ammount ?? 0)
+    || ((userSettings.everyMonthPayments?.length ?? 0) === 0 && props.payments.length === 0)
+    || initialBillAmmount === 0
   );
   const [mailBody, setMailBody] = useState<string>(
-    defaultMailBody(props.payments, billAmmount, userSettings.everyMonthPayment ?? undefined)
+    defaultMailBody(props.payments, initialBillAmmount, userSettings.everyMonthPayments)
   );
 
   const [message, setMessage] = useState<string>(
@@ -40,7 +45,7 @@ const SendMailButton: React.FC<Props> = (props) => {
       let message = "";
       if (userSettings.destMailAddr === "") {
         message = "メールアドレスが設定されていません";
-      } else if (billAmmount === 0) {
+      } else if (initialBillAmmount === 0) {
         message = "請求額が0円です";
       }
       return message;
@@ -50,7 +55,8 @@ const SendMailButton: React.FC<Props> = (props) => {
 
   // メールアドレスや支払い履歴が更新されたら、メール送信可否を再チェックし、メッセージを更新
   useEffect(() => {
-    const newBillAmmount = props.sumAmmount + (userSettings.everyMonthPayment?.ammount ?? 0);
+    const fixedSum = getFixedCostSum(userSettings.everyMonthPayments);
+    const newBillAmmount = props.sumAmmount + fixedSum;
 
     let newMessage = "";
     if (userSettings.destMailAddr === "") {
@@ -60,11 +66,13 @@ const SendMailButton: React.FC<Props> = (props) => {
     }
     setMessage(newMessage);
     setIsDisabled(
-      userSettings.destMailAddr === "" || newBillAmmount === 0
+      userSettings.destMailAddr === ""
+      || ((userSettings.everyMonthPayments?.length ?? 0) === 0 && props.payments.length === 0)
+      || newBillAmmount === 0
     );
     setBillAmmount(newBillAmmount);
     setMailBody(
-      defaultMailBody(props.payments, newBillAmmount, userSettings.everyMonthPayment ?? undefined)
+      defaultMailBody(props.payments, newBillAmmount, userSettings.everyMonthPayments)
     );
   }, [userSettings, props.payments, props.sumAmmount]);
 
@@ -92,7 +100,7 @@ const SendMailButton: React.FC<Props> = (props) => {
 
   const handleCansel = () => {
     setMailBody(
-      defaultMailBody(props.payments, billAmmount, userSettings.everyMonthPayment ?? undefined)
+      defaultMailBody(props.payments, billAmmount, userSettings.everyMonthPayments)
     );
     onClose();
   }
@@ -154,7 +162,7 @@ export default SendMailButton;
 const defaultMailBody = (
   payments: Payment[],
   billAmmount: number,
-  everyMonthPayment?: { title: string, ammount: number }
+  everyMonthPayments?: EveryMonthPayment[]
 ): string => {
   const header = "立替分は以下の通りです。";
 
@@ -164,8 +172,11 @@ const defaultMailBody = (
     body += `${payment.date.getMonth() + 1}月${payment.date.getDate()}日 : ${payment.title} ${payment.ammount}円\n`;
   });
   // 登録した固定費
-  if (everyMonthPayment) {
-    body += `\n${everyMonthPayment.title} ${everyMonthPayment.ammount}円\n`;
+  if (everyMonthPayments && everyMonthPayments.length > 0) {
+    body += "\n";
+    everyMonthPayments.forEach((payment) => {
+      body += `${payment.title} ${payment.ammount}円\n`;
+    });
   }
   body += `\n合計 ${billAmmount}円`;
 

@@ -4,9 +4,14 @@ type Props = {
   children: ReactNode,
 };
 
+export type EveryMonthPayment = {
+  title: string,
+  ammount: number,
+};
+
 export type UserSettings = {
   destMailAddr: string,
-  everyMonthPayment: { title: string, ammount: number } | null,
+  everyMonthPayments: EveryMonthPayment[],
   resetOnSend: boolean,
   purposeSuggestions: string[],
 };
@@ -27,17 +32,23 @@ export const UserSeetingsProvider: React.FC<Props> = (props) => {
     ((): UserSettings => {
       const userSettingsStr = localStorage.getItem("userSettings");
       if (userSettingsStr) {
-        const parsed = JSON.parse(userSettingsStr) as UserSettings;
+        const parsed = JSON.parse(userSettingsStr);
+        let everyMonthPayments: EveryMonthPayment[] = [];
+        if (Array.isArray(parsed.everyMonthPayments)) {
+          everyMonthPayments = parsed.everyMonthPayments;
+        } else if (parsed.everyMonthPayment && typeof parsed.everyMonthPayment === "object" && parsed.everyMonthPayment.title) {
+          everyMonthPayments = [parsed.everyMonthPayment];
+        }
         return {
           destMailAddr: parsed.destMailAddr ?? "",
-          everyMonthPayment: parsed.everyMonthPayment ?? null,
+          everyMonthPayments,
           resetOnSend: parsed.resetOnSend ?? false,
           purposeSuggestions: parsed.purposeSuggestions ?? DEFAULT_SUGGESTIONS,
         };
       } else {
         return ({
           destMailAddr: "",
-          everyMonthPayment: null,
+          everyMonthPayments: [],
           resetOnSend: false,
           purposeSuggestions: DEFAULT_SUGGESTIONS,
         } satisfies UserSettings);
