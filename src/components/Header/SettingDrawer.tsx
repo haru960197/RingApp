@@ -1,14 +1,22 @@
 import { SettingsIcon, EditIcon, DeleteIcon, CheckIcon, CloseIcon, AddIcon } from "@chakra-ui/icons"
 import { Button, Checkbox, Drawer, DrawerBody, DrawerCloseButton, DrawerContent, DrawerFooter, DrawerHeader, DrawerOverlay, FormControl, FormLabel, HStack, IconButton, Input, NumberInput, NumberInputField, Stack, Text, useDisclosure } from "@chakra-ui/react"
 import { useContext, useRef, useState } from "react";
-import { UserSeetingsContext, UserSettings } from "../../Provider/UserSeetingsProvider";
+import { UserSeetingsContext, UserSettings, EveryMonthPayment } from "../../Provider/UserSeetingsProvider";
 
 const SettingDrawer: React.FC = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { userSettings, setUserSettings } = useContext(UserSeetingsContext);
   const [destMailAddrInput, setDestMailAddrInput] = useState(userSettings.destMailAddr);
-  const [titleInput, setTitleInput] = useState<string>(userSettings.everyMonthPayment?.title ?? "");
-  const [ammountInput, setAmmountInput] = useState<number>(userSettings.everyMonthPayment?.ammount ?? 0);
+
+  const [everyMonthPaymentsInput, setEveryMonthPaymentsInput] = useState<EveryMonthPayment[]>(
+    userSettings.everyMonthPayments ?? []
+  );
+  const [newFixedCostTitle, setNewFixedCostTitle] = useState("");
+  const [newFixedCostAmmount, setNewFixedCostAmmount] = useState<number>(0);
+  const [editingFixedCostIndex, setEditingFixedCostIndex] = useState<number | null>(null);
+  const [editingFixedCostTitle, setEditingFixedCostTitle] = useState("");
+  const [editingFixedCostAmmount, setEditingFixedCostAmmount] = useState<number>(0);
+
   const [resetOnSendInput, setResetOnSendinput] = useState<boolean>(userSettings.resetOnSend);
   const [purposeSuggestionsInput, setPurposeSuggestionsInput] = useState<string[]>(
     userSettings.purposeSuggestions ?? []
@@ -17,6 +25,48 @@ const SettingDrawer: React.FC = () => {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingValue, setEditingValue] = useState("");
   const firstInputRef = useRef(null);
+
+  const handleAddFixedCost = () => {
+    const trimmed = newFixedCostTitle.trim();
+    if (trimmed && newFixedCostAmmount !== 0) {
+      setEveryMonthPaymentsInput([
+        ...everyMonthPaymentsInput,
+        { title: trimmed, ammount: newFixedCostAmmount }
+      ]);
+      setNewFixedCostTitle("");
+      setNewFixedCostAmmount(0);
+    }
+  };
+
+  const handleDeleteFixedCost = (index: number) => {
+    const nextList = everyMonthPaymentsInput.filter((_, i) => i !== index);
+    setEveryMonthPaymentsInput(nextList);
+    if (editingFixedCostIndex === index) {
+      setEditingFixedCostIndex(null);
+    } else if (editingFixedCostIndex !== null && editingFixedCostIndex > index) {
+      setEditingFixedCostIndex(editingFixedCostIndex - 1);
+    }
+  };
+
+  const handleStartEditFixedCost = (index: number) => {
+    setEditingFixedCostIndex(index);
+    setEditingFixedCostTitle(everyMonthPaymentsInput[index].title);
+    setEditingFixedCostAmmount(everyMonthPaymentsInput[index].ammount);
+  };
+
+  const handleSaveEditFixedCost = (index: number) => {
+    const trimmed = editingFixedCostTitle.trim();
+    if (trimmed && editingFixedCostAmmount !== 0) {
+      const nextList = [...everyMonthPaymentsInput];
+      nextList[index] = { title: trimmed, ammount: editingFixedCostAmmount };
+      setEveryMonthPaymentsInput(nextList);
+      setEditingFixedCostIndex(null);
+    }
+  };
+
+  const handleCancelEditFixedCost = () => {
+    setEditingFixedCostIndex(null);
+  };
 
   const handleAddSuggestion = () => {
     const trimmed = newSuggestion.trim();
@@ -60,13 +110,7 @@ const SettingDrawer: React.FC = () => {
   const handleSaveClick = (): void => {
     const newUserSettings: UserSettings = {
       destMailAddr: destMailAddrInput,
-      everyMonthPayment:
-        (titleInput !== "" && ammountInput !== 0)
-          ? {
-            title: titleInput,
-            ammount: ammountInput,
-          }
-          : null,
+      everyMonthPayments: everyMonthPaymentsInput,
       resetOnSend: resetOnSendInput,
       purposeSuggestions: purposeSuggestionsInput,
     };
@@ -77,8 +121,10 @@ const SettingDrawer: React.FC = () => {
 
   const handleCanselClick = (): void => {
     setDestMailAddrInput(userSettings.destMailAddr);
-    setTitleInput(userSettings.everyMonthPayment?.title ?? "");
-    setAmmountInput(userSettings.everyMonthPayment?.ammount ?? 0);
+    setEveryMonthPaymentsInput(userSettings.everyMonthPayments ?? []);
+    setEditingFixedCostIndex(null);
+    setNewFixedCostTitle("");
+    setNewFixedCostAmmount(0);
     setResetOnSendinput(userSettings.resetOnSend);
     setPurposeSuggestionsInput(userSettings.purposeSuggestions ?? []);
     setEditingIndex(null);
@@ -110,24 +156,104 @@ const SettingDrawer: React.FC = () => {
               />
             </FormControl>
 
-            <Text marginTop={4}>固定の請求</Text>
-            <Stack paddingLeft={2} marginTop={2}>
-              <FormControl>
-                <FormLabel>用途</FormLabel>
+            <Text marginTop={4} fontWeight="bold" fontSize="md">固定の請求</Text>
+            <Stack spacing={2} marginTop={2} paddingLeft={1}>
+              {everyMonthPaymentsInput.map((payment, index) => (
+                <HStack key={index} justify="space-between" align="center" minH="40px" borderWidth="1px" borderRadius="md" p={2} borderColor="gray.200" bg="gray.50">
+                  {editingFixedCostIndex === index ? (
+                    <HStack w="100%" spacing={1}>
+                      <Input
+                        size="sm"
+                        placeholder="用途"
+                        value={editingFixedCostTitle}
+                        onChange={(e) => setEditingFixedCostTitle(e.target.value)}
+                        bg="white"
+                        autoFocus
+                      />
+                      <NumberInput
+                        size="sm"
+                        w="90px"
+                        value={editingFixedCostAmmount}
+                        onChange={(valStr) => setEditingFixedCostAmmount(Number(valStr))}
+                        bg="white"
+                      >
+                        <NumberInputField px={2} />
+                      </NumberInput>
+                      <IconButton
+                        aria-label="Save edit"
+                        icon={<CheckIcon />}
+                        size="xs"
+                        colorScheme="green"
+                        onClick={() => handleSaveEditFixedCost(index)}
+                        isDisabled={!editingFixedCostTitle.trim() || editingFixedCostAmmount === 0}
+                      />
+                      <IconButton
+                        aria-label="Cancel edit"
+                        icon={<CloseIcon />}
+                        size="xs"
+                        colorScheme="gray"
+                        onClick={handleCancelEditFixedCost}
+                      />
+                    </HStack>
+                  ) : (
+                    <>
+                      <HStack spacing={2} isTruncated>
+                        <Text fontSize="sm" fontWeight="medium" isTruncated>{payment.title}</Text>
+                        <Text fontSize="sm" color="gray.600">{payment.ammount.toLocaleString()}円</Text>
+                      </HStack>
+                      <HStack spacing={1}>
+                        <IconButton
+                          aria-label="Edit fixed cost"
+                          icon={<EditIcon />}
+                          size="xs"
+                          colorScheme="blue"
+                          variant="ghost"
+                          onClick={() => handleStartEditFixedCost(index)}
+                        />
+                        <IconButton
+                          aria-label="Delete fixed cost"
+                          icon={<DeleteIcon />}
+                          size="xs"
+                          colorScheme="red"
+                          variant="ghost"
+                          onClick={() => handleDeleteFixedCost(index)}
+                        />
+                      </HStack>
+                    </>
+                  )}
+                </HStack>
+              ))}
+
+              <HStack marginTop={2} spacing={1}>
                 <Input
-                  value={titleInput}
-                  onChange={(e) => setTitleInput(e.target.value)}
+                  size="sm"
+                  placeholder="用途"
+                  value={newFixedCostTitle}
+                  onChange={(e) => setNewFixedCostTitle(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddFixedCost();
+                    }
+                  }}
                 />
-              </FormControl>
-              <FormControl>
-                <FormLabel fontSize={'sm'}>金額</FormLabel>
                 <NumberInput
-                  value={ammountInput}
-                  onChange={(valueStr) => setAmmountInput(Number(valueStr))}
+                  size="sm"
+                  w="90px"
+                  value={newFixedCostAmmount === 0 ? "" : newFixedCostAmmount}
+                  onChange={(valStr) => setNewFixedCostAmmount(Number(valStr))}
                 >
-                  <NumberInputField />
+                  <NumberInputField placeholder="金額" px={2} />
                 </NumberInput>
-              </FormControl>
+                <IconButton
+                  aria-label="Add fixed cost"
+                  icon={<AddIcon />}
+                  size="sm"
+                  colorScheme="blue"
+                  onClick={handleAddFixedCost}
+                  isDisabled={!newFixedCostTitle.trim() || newFixedCostAmmount === 0}
+                />
+              </HStack>
             </Stack>
             <FormControl marginTop={4}>
               <FormLabel>メール送信時に履歴をリセット</FormLabel>
